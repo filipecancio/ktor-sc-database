@@ -9,8 +9,16 @@ import io.ktor.server.request.*
 fun Application.configureRouting() {
 
     routing {
-        get("/") {
-            call.respondText("Hello World!")
+        route("/person") {
+            post {
+                val request = call.receive<PersonDto>()
+                val person = request.toPerson()
+                service.create(person)
+                    ?.let { userId ->
+                        call.response.headers.append("My-User-Id-Header", userId.toString())
+                        call.respond(HttpStatusCode.Created)
+                    } ?: call.respond(HttpStatusCode.BadRequest, ErrorResponse.BAD_REQUEST_RESPONSE)
+            }
         }
     }
 }
